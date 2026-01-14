@@ -1,0 +1,236 @@
+const ExamFlow = (() => {
+    let flowIndex = 0;
+    let questions = [];
+    let answers = {};
+    let isViewingInstruction = false;
+    let audio = null;
+    let isListeningMode = false;
+
+    function init() {
+        // Menggunakan standar HTML5 Audio element
+        audio = document.getElementById("mainAudio");
+        
+        if (audio) {
+            // Aktifkan controls untuk mempermudah testing/scrubbing
+            audio.controls = true;
+            audio.ontimeupdate = checkAudioCues;
+        }
+
+        fetchQuestions();
+
+        document.getElementById("btn-start-exam").onclick = startExam;
+        document.getElementById("btn-next").onclick = next;
+        document.getElementById("btn-prev").onclick = prev;
+    }
+
+    async function fetchQuestions() {
+        try {
+            const res = await fetch(`/exam/api/${window.EXAM_SESSION_ID}/questions`);
+            const data = await res.json();
+            questions = data.questions;
+            console.log("Questions loaded:", questions.length);
+            renderQuestionMap();
+        } catch (err) {
+            console.error("Gagal memuat soal:", err);
+        }
+    }
+
+    function startExam() {
+        document.getElementById("start-screen").classList.add("d-none");
+        document.getElementById("exam-screen").classList.remove("d-none");
+        document.getElementById("exam-footer").classList.remove("d-none");
+
+        flowIndex = 0;
+        
+        const firstQ = questions[0];
+        if (firstQ) {
+            // Tampilkan instruksi jika ada di soal pertama
+            isViewingInstruction = !!firstQ.instruction_data;
+        }
+
+        if (audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.warn("Autoplay blocked. User manual play required."));
+        }
+
+        playCurrent();
+    }
+
+    function checkAudioCues() {
+        if (!isListeningMode || !audio || audio.paused) return;
+
+        const currentTime = audio.currentTime;
+        const listeningQs = questions.filter(q => 
+            q.section.toLowerCase() === 'listening' && q.cue_start !== null
+        );
+
+        if (listeningQs.length === 0) return;
+
+        // Zona Instruksi: Sebelum masuk ke cue_start soal pertama
+        if (currentTime < listeningQs[0].cue_start) {
+            const firstIdx = questions.findIndex(q => q.id === listeningQs[0].id);
+            if (!isViewingInstruction || flowIndex !== firstIdx) {
+                flowIndex = firstIdx;
+                isViewingInstruction = true;
+                playCurrent();
+            }
+            return;
+        }
+
+        // Cari soal yang aktif berdasarkan detik audio
+        const activeIdx = questions.findLastIndex(q => 
+            q.section.toLowerCase() === 'listening' && 
+            q.cue_start !== null && 
+            currentTime >= q.cue_start
+        );
+
+        if (activeIdx !== -1 && (activeIdx !== flowIndex || isViewingInstruction)) {
+            flowIndex = activeIdx;
+            isViewingInstruction = false; // Detik audio sudah masuk, matikan instruksi
+            playCurrent();
+        }
+    }
+
+    function playCurrent() {
+        const q = questions[flowIndex];
+        if (!q) return;
+
+        isListeningMode = (q.section.toLowerCase() === "listening");
+
+        // UI Navigasi
+        document.getElementById("navigation-column").classList.toggle("d-none", isListeningMode);
+        document.getElementById("btn-prev").classList.toggle("d-none", isListeningMode || flowIndex === 0);
+        document.getElementById("btn-next").classList.toggle("d-none", isListeningMode);
+        document.getElementById("section-name").innerText = `Section: ${q.section.toUpperCase()}`;
+
+        // Switcher Instruksi vs Soal
+        if (q.instruction_data && isViewingInstruction) {
+            renderInstruction(q.instruction_data);
+        } else {
+            renderQuestion(q);
+        }
+
+        // Selalu update peta soal untuk menandai posisi nomor saat ini
+        renderQuestionMap();
+    }
+
+    function renderInstruction(content) {
+        const instr = document.getElementById("instruction");
+        instr.innerHTML = `
+            <div class="p-4" style="background-color: #f8fafc; border-left: 4px solid #94a3b8; border-radius: 4px;">
+                <h6 class="font-weight-bold text-secondary small text-uppercase mb-3">Direction</h6>
+                <div class="text-dark" style="line-height: 1.7;">${content}</div>
+            </div>`;
+        instr.classList.remove("d-none");
+        document.getElementById("exam-screen").classList.add("d-none");
+    }
+
+    function renderQuestion(q) {
+        document.getElementById("instruction").classList.add("d-none");
+        document.getElementById("exam-screen").classList.remove("d-none");
+
+        document.getElementById("question-number").innerText = `Question ${q.number}`;
+        document.getElementById("question-text").innerHTML = q.content_html || "";
+
+        let opts = typeof q.options === "string" ? JSON.parse(q.options) : q.options;
+        let html = "";
+
+        Object.entries(opts || {}).forEach(([key, val]) => {
+            const isSelected = (answers[q.id] === key);
+            html += `
+                <div class="mb-2 p-3 border d-flex align-items-center answer-card" 
+                     style="cursor:pointer; border-radius: 4px; transition: 0.2s;
+                            background: ${isSelected ? "#f1f5f9" : "#fff"}; 
+                            border-color: ${isSelected ? "#475569" : "#e2e8f0"} !important;"
+                     onclick="ExamFlow.handleSelect('${q.id}', '${key}')">
+                    <div class="mr-3 font-weight-bold">${key}.</div>
+                    <div>${val}</div>
+                </div>`;
+        });
+        document.getElementById("options-container").innerHTML = html;
+    }
+
+    function handleSelect(qId, val) {
+        // Update local state
+        answers[qId] = val;
+        
+        // Render ulang komponen yang terpengaruh
+        renderQuestion(questions[flowIndex]);
+        renderQuestionMap(); // Pastikan tombol jadi Hijau
+        
+        // Simpan ke database
+        saveAnswer(qId, val);
+    }
+
+    function renderQuestionMap() {
+        const container = document.getElementById("question-map");
+        if (!container) return;
+        
+        container.innerHTML = questions.map((q, i) => {
+            const isAnswered = (answers[q.id] !== undefined && answers[q.id] !== null);
+            const isCurrent = (flowIndex === i);
+            
+            // Warna Hijau jika sudah dijawab, putih jika belum
+            const btnClass = isAnswered ? "btn-success" : "btn-outline-secondary";
+            const borderStyle = isCurrent ? "border: 2px solid #475569; font-weight: bold;" : "border: 1px solid #cbd5e1;";
+
+            return `
+                <div class="col-2 p-1 text-center">
+                    <button onclick="ExamFlow.jumpTo(${i})" 
+                        class="btn btn-sm btn-block ${btnClass}" 
+                        style="border-radius: 4px; font-size: 10px; height: 30px; ${borderStyle} transition: all 0.2s;">
+                        ${i + 1}
+                    </button>
+                </div>`;
+        }).join("");
+    }
+
+    async function saveAnswer(qId, val) {
+        try {
+            await fetch(`/exam/api/${window.EXAM_SESSION_ID}/answer`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ question_id: qId, selected: val })
+            });
+        } catch (e) {
+            console.warn("Save database failed, keep in local memory.");
+        }
+    }
+
+    function next() {
+        if (isViewingInstruction) {
+            isViewingInstruction = false;
+            playCurrent();
+        } else if (flowIndex < questions.length - 1) {
+            flowIndex++;
+            playCurrent();
+        }
+    }
+
+    function prev() {
+        if (!isListeningMode && flowIndex > 0) {
+            flowIndex--;
+            playCurrent();
+        }
+    }
+
+    function jumpTo(i) {
+        if (isListeningMode) return;
+        flowIndex = i;
+        isViewingInstruction = false;
+        playCurrent();
+    }
+
+    return { init, handleSelect, jumpTo, next, prev };
+})();
+
+document.addEventListener("DOMContentLoaded", ExamFlow.init);
+
+
+//<audio id="mainAudio" class="d-none">
+    <source src="{{ asset('storage/' . $session->package->audio_path) }}" type="audio/mpeg">
+</audio>

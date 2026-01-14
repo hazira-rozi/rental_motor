@@ -1,0 +1,13 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Rental extends Model
+{
+    protected $fillable = ['user_id', 'motor_id', 'tgl_pinjam', 'tgl_kembali', 'total_bayar', 'status_transaksi'];
+
+    public function user() { return $this->belongsTo(User::class); }
+    public function motor() { return $this->belongsTo(Motor::class); }
+}

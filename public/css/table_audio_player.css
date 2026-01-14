@@ -1,0 +1,19 @@
+.table-audio-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+}
+
+/* RANGE HARUS BISA DITANGKAP MOUSE */
+.tap-slider {
+    flex: 1;
+    cursor: pointer;
+    pointer-events: auto !important;
+    z-index: 10;
+}
+
+/* BUTTON JANGAN MENUTUP SLIDER */
+.tap-play {
+    z-index: 11;
+}
