@@ -45,16 +45,7 @@ Pastikan komputer Anda memiliki:
 
 Ikuti langkah ini untuk menjalankan proyek di komputer lokal:
 
-### 1. Clone Repository
+### Clone Repository
 ```bash
 git clone [https://github.com/hazira-rozi/rental-motor-ukk.git](https://github.com/hazira-rozi/rental-motor-ukk.git)
-cd rental-motor-ukk
-2. Install LibraryDownload semua dependency Laravel:Bashcomposer install
-3. Konfigurasi EnvironmentSalin file konfigurasi dan generate kunci keamanan:Bashcp .env.example .env
-php artisan key:generate
-4. Setup DatabaseBuka phpMyAdmin.Buat database baru bernama: db_rental_2026.Buka file .env, atur koneksi database:Ini, TOMLDB_DATABASE=db_rental_2026
-DB_USERNAME=root
-DB_PASSWORD=
-5. Migrasi & Data AwalBuat tabel dan akun admin otomatis:Bashphp artisan migrate:fresh --seed
-6. Jalankan AplikasiBashphp artisan serve
-Buka browser dan akses: http://127.0.0.1:8000👤 Akun Login DefaultGunakan akun berikut untuk masuk ke sistem:RoleEmailPasswordAdministratoradmin@sekolah.idrahasiaCatatan: Password 'rahasia' telah dienkripsi menggunakan Bcrypt di database.📂 Peta File PentingBerikut adalah lokasi file yang sering dimodifikasi:Logika Bisnis (Controller):app/Http/Controllers/RentalController.php (Hitung Denda & Durasi)app/Http/Controllers/MotorController.php (Manajemen Motor)Tampilan (Views):resources/views/layouts/app.blade.php (Layout Utama)resources/views/admin/ (Folder Halaman Admin)Database:database/migrations/ (Struktur Tabel)⚠️ DisclaimerAplikasi ini dibuat untuk tujuan pendidikan dan ujian praktik.SMKN 1 Singkarak - XII RPL
+
