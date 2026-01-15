@@ -46,6 +46,6 @@ Pastikan komputer Anda memiliki:
 Ikuti langkah ini untuk menjalankan proyek di komputer lokal:
 
 ### Clone Repository
-```bash
-git clone [https://github.com/hazira-rozi/rental-motor-ukk.git](https://github.com/hazira-rozi/rental-motor-ukk.git)
+
+git clone [https://github.com/hazira-rozi/rental-motor.git](https://github.com/hazira-rozi/rental-motor.git)
 
