@@ -47,7 +47,7 @@ Ikuti langkah ini untuk menjalankan proyek di komputer lokal:
 
 ### 1. Clone Repository
 ```bash
-git clone [https://github.com/username-anda/rental-motor-ukk.git](https://github.com/username-anda/rental-motor-ukk.git)
+git clone [https://github.com/hazira-rozi/rental-motor-ukk.git](https://github.com/hazira-rozi/rental-motor-ukk.git)
 cd rental-motor-ukk
 2. Install LibraryDownload semua dependency Laravel:Bashcomposer install
 3. Konfigurasi EnvironmentSalin file konfigurasi dan generate kunci keamanan:Bashcp .env.example .env
