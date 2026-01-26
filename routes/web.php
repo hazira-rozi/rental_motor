@@ -17,7 +17,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-    // Menampilkan & Memproses Register
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 });
@@ -27,54 +26,68 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // --- AREA ADMIN (Akses khusus Admin) ---
+    // ====================================================
+    // AREA ADMIN (Akses khusus Admin)
+    // ====================================================
     Route::middleware('can:is-admin')->prefix('admin')->group(function () {
         
-        // Dashboard Admin
+        // Dashboard
         Route::get('/dashboard', [AuthController::class, 'adminDashboard'])->name('admin.dashboard');
 
-        // CRUD Inventaris Motor (Resourceful)
+        // 1. MANAJEMEN DATA MASTER
+        // Resource Motor
         Route::resource('motor', MotorController::class);
-
-        // CRUD Anggota/User
-        Route::resource('user', UserController::class);
-
-        // PENGELOLAAN TRANSAKSI & LAPORAN
-        Route::get('/laporan', [RentalController::class, 'index'])->name('admin.laporan');
         
-        // Fitur Create Transaksi Manual oleh Admin
+        // Manajemen User (Admin & Pelanggan)
+        // Route khusus untuk melihat daftar pelanggan (sesuai request sebelumnya)
+        Route::get('/user', [UserController::class, 'index'])->name('users.index'); 
+        Route::resource('user', UserController::class)->except(['index']); // Resource sisanya
+
+        // 2. MANAJEMEN TRANSAKSI / RENTAL
+        // List Peminjaman (Utama)
+        Route::get('/rentals', [RentalController::class, 'index'])->name('admin.rentals');
+        
+        // Laporan (Bisa diarahkan ke index yang sama atau method khusus cetak)
+        Route::get('/laporan', [RentalController::class, 'index'])->name('laporan');
+
+        // Aksi Approval & Pengembalian (Gunakan PATCH agar aman)
+        Route::patch('/rentals/{id}/approve', [RentalController::class, 'approve'])->name('rentals.approve');
+        Route::patch('/rentals/{id}/reject', [RentalController::class, 'reject'])->name('rentals.reject');
+        
+        // Route untuk mengembalikan motor (sesuai method di controller: returnMotor)
+        Route::get('/rentals/{id}/return', [RentalController::class, 'returnMotor'])->name('rentals.return');
+
+        // CRUD Transaksi Manual (Opsional jika admin ingin input manual)
         Route::get('/rentals/create', [RentalController::class, 'create'])->name('admin.rentals.create');
-        Route::post('/rentals/store', [RentalController::class, 'storeAdmin'])->name('admin.rentals.store');
-
-        // Aksi Approval & Kontrol Transaksi
-        Route::patch('/rentals/{id}/approve', [RentalController::class, 'approve'])->name('admin.rentals.approve');
-        Route::patch('/rentals/{id}/reject', [RentalController::class, 'reject'])->name('admin.rentals.reject');
-        Route::patch('/rentals/{id}/return', [RentalController::class, 'returnMotor'])->name('admin.rentals.return');
-        
-        // Detail, Edit & Hapus Transaksi
-        Route::get('/rentals/{id}', [RentalController::class, 'show'])->name('admin.rentals.show');
-        Route::get('/rentals/{id}/edit', [RentalController::class, 'edit'])->name('admin.rentals.edit');
-        Route::put('/rentals/{id}', [RentalController::class, 'update'])->name('admin.rentals.update');
+        Route::post('/rentals', [RentalController::class, 'storeAdmin'])->name('admin.rentals.store');
         Route::delete('/rentals/{id}', [RentalController::class, 'destroy'])->name('admin.rentals.destroy');
+
+        //Laporan
+        Route::get('/laporan', [RentalController::class, 'laporan'])->name('admin.rentals.laporan');
+        Route::get('/rentals/{id}/struk', [RentalController::class, 'printStruk'])->name('admin.rentals.struk');
     });
 
-    // --- AREA PELANGGAN (Akses khusus Pelanggan) ---
+
+    // ====================================================
+    // AREA PELANGGAN (Akses khusus Pelanggan)
+    // ====================================================
     Route::middleware('can:is-pelanggan')->prefix('user')->group(function () {
         
-        // Dashboard Pelanggan (List Motor)
+        // Dashboard (Katalog Motor)
         Route::get('/dashboard', [RentalController::class, 'userDashboard'])->name('user.dashboard');
         
-        // Riwayat Sewa Pelanggan
-        Route::get('/riwayat', [RentalController::class, 'history'])->name('user.history');
+        // Riwayat Transaksi Saya
+        Route::get('/history', [RentalController::class, 'history'])->name('user.history');
         
-        // Pengajuan Sewa (Store)
-        Route::post('/pinjam', [RentalController::class, 'store'])->name('rental.pinjam');
+        // Proses Sewa (Action Form)
+        // Penting: Mengarah ke method 'pinjam' di controller
+        Route::post('/rental/pinjam', [RentalController::class, 'pinjam'])->name('rental.pinjam');
         
-        // Lihat Detail/Struk oleh Pelanggan
-        Route::get('/riwayat/{id}', [RentalController::class, 'show'])->name('rental.show');
+        // Detail Transaksi
+        Route::get('/transaksi/{id}', [RentalController::class, 'show'])->name('rental.show');
 
-        Route::get('/profil', [RentalController::class, 'editProfil'])->name('user.profil');
-    Route::put('/profil/update', [RentalController::class, 'updateProfil'])->name('user.profil.update');
+     
 
+        Route::get('/riwayat/{id}/struk', [RentalController::class, 'printStruk'])->name('user.struk');
     });
 });

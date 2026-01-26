@@ -31,7 +31,7 @@
         </li>
 
         <li class="nav-item {{ Request::is('admin/users*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('user.index') }}">
+            <a class="nav-link" href="{{ route('users.index') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Data Pelanggan</span>
             </a>
@@ -43,6 +43,12 @@
             Transaksi
         </div>
 
+        <li class="nav-item {{ Request::is('admin/rentals/') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.rentals') }}">
+                <i class="fas fa-fw fa-motorcycle"></i>
+                <span>Data Peminjaman</span>
+            </a>
+        </li>
         <li class="nav-item {{ Request::is('admin/rentals/create') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('admin.rentals.create') }}">
                 <i class="fas fa-fw fa-plus-circle"></i>
@@ -51,7 +57,7 @@
         </li>
 
         <li class="nav-item {{ Request::is('admin/laporan*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('admin.laporan') }}">
+            <a class="nav-link" href="{{ route('admin.rentals.laporan') }}">
                 <i class="fas fa-fw fa-clipboard-list"></i>
                 <span>Laporan Transaksi</span>
             </a>
@@ -76,12 +82,12 @@
             </a>
         </li>
 
-        <li class="nav-item {{ Request::is('user/profil*') ? 'active' : '' }}">
+        {{-- <li class="nav-item {{ Request::is('user/profil*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('user.profil') }}">
                 <i class="fas fa-fw fa-user-cog"></i>
                 <span>Profil Saya</span>
             </a>
-        </li>
+        </li> --}}
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">

@@ -1,85 +1,65 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Rental Motor - UKK 2026</title>
-    
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/startbootstrap-sb-admin-2/4.1.3/css/sb-admin-2.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css" rel="stylesheet">
-</head>
+@extends('layouts.app')
 
-<body id="page-top">
+@section('content')
+<div class="container-fluid">
 
-    <div id="wrapper">
+    <h1 class="h3 mb-2 text-gray-800">Data Pelanggan</h1>
+    <p class="mb-4">Berikut adalah data user yang terdaftar sebagai pelanggan.</p>
 
-        @include('layouts.sidebar')
-
-        <div id="content-wrapper" class="d-flex flex-column">
-
-            <div id="content">
-
-                @include('layouts.navbar')
-
-                <div class="container-fluid">
-                    
-                    @if(session('success'))
-                        <div class="alert alert-success border-left-success shadow">{{ session('success') }}</div>
-                    @endif
-                    
-                    @if(session('error'))
-                        <div class="alert alert-danger border-left-danger shadow">{{ session('error') }}</div>
-                    @endif
-
-                    @yield('content')
-
-                </div>
-                </div>
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Rental Motor 2026</span>
-                    </div>
-                </div>
-            </footer>
-
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Tabel Pelanggan</h6>
         </div>
-        </div>
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Yakin ingin keluar?</h5>
-                    <button class="close" type="button" data-dismiss="modal"><span>×</span></button>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-danger">Logout</button>
-                    </form>
-                </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Lengkap</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>No. Telp</th>
+                            <th>Alamat</th>
+                            <th>Bergabung</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($users as $key => $p)
+                        <tr>
+                            <td>{{ $key + 1 }}</td>
+                            <td>{{ $p->name }}</td>
+                            <td><span class="badge badge-secondary">{{ $p->username }}</span></td>
+                            <td>{{ $p->email }}</td>
+                            
+                            {{-- Gunakan tanda tanya (??) untuk menangani data nullable --}}
+                            <td>{{ $p->no_telp ?? '-' }}</td> 
+                            <td>{{ $p->alamat ?? '-' }}</td>
+                            
+                            <td>{{ $p->created_at->format('d M Y') }}</td>
+                            <td>
+                                <a href="#" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="#" method="POST" class="d-inline" onsubmit="return confirm('Hapus pelanggan ini?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center">Belum ada data pelanggan.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/startbootstrap-sb-admin-2/4.1.3/js/sb-admin-2.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $('#dataTable').DataTable({
-                "language": { "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json" }
-            });
-        });
-    </script>
-</body>
-</html>
+</div>
+@endsection
