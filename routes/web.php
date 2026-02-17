@@ -51,8 +51,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/laporan', [RentalController::class, 'index'])->name('laporan');
 
         // Aksi Approval & Pengembalian (Gunakan PATCH agar aman)
-        Route::patch('/rentals/{id}/approve', [RentalController::class, 'approve'])->name('rentals.approve');
-        Route::patch('/rentals/{id}/reject', [RentalController::class, 'reject'])->name('rentals.reject');
+        Route::patch('/rentals/{id}/approve', [RentalController::class, 'approve'])->name('admin.rentals.approve');
+        Route::patch('/rentals/{id}/reject', [RentalController::class, 'reject'])->name('admin.rentals.reject');
         
         // Route untuk mengembalikan motor (sesuai method di controller: returnMotor)
         Route::get('/rentals/{id}/return', [RentalController::class, 'returnMotor'])->name('rentals.return');
