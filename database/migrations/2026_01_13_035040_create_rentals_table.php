@@ -17,6 +17,7 @@ return new class extends Migration
     $table->foreignId('motor_id')->constrained()->onDelete('cascade');
     $table->date('tgl_pinjam');
     $table->date('tgl_kembali')->nullable();
+    $table->integer('lama_pinjam')->nullable()
     $table->integer('total_bayar')->nullable();
     $table->enum('status_transaksi', ['menunggu','proses', 'selesai','ditolak'])->default('menunggu');
     $table->timestamps();
